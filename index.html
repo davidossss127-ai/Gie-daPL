@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giełda Zleceń & Dyspozytor - Polska Logistyka VTC</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        vtc: {
+                            dark: '#0a0a0c',
+                            card: '#121217',
+                            cardHover: '#1a1a22',
+                            red: '#e50914',
+                            redHover: '#b20710',
+                            accent: '#ff1e2e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0a0a0c;
+            color: #f3f4f6;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e50914;
+            border-radius: 4px;
+        }
+        .hero-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(229, 9, 20, 0.15) 0%, transparent 70%);
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .phone-notification {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-red-600 selection:text-white">
+
+    <!-- Navbar -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-vtc-dark/90 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="https://i.postimg.cc/cLG96180/LOGOS.png" alt="Logo" class="h-10 w-auto object-contain group-hover:scale-105 transition-transform">
+                <div class="flex flex-col">
+                    <span class="font-black text-xl tracking-wider text-white">POLSKA <span class="text-vtc-red">LOGISTYKA</span></span>
+                    <span class="text-[10px] tracking-widest text-gray-400 uppercase font-semibold">Giełda & Dyspozytoria</span>
+                </div>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-semibold transition-all border border-white/10">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Strona Główna
+                </a>
+                <button onclick="openAdminModal()" class="px-4 py-2 rounded-xl bg-vtc-red hover:bg-vtc-redHover text-white text-sm font-semibold transition-all shadow-lg shadow-red-600/30 flex items-center space-x-2">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Panel Admina</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Header Section -->
+    <section class="relative pt-32 pb-16 md:pt-40 md:pb-16 overflow-hidden text-center">
+        <div class="absolute inset-0 hero-glow pointer-events-none"></div>
+        <div class="max-w-4xl mx-auto px-4 relative z-10 space-y-4">
+            <span class="px-3.5 py-1.5 rounded-full bg-red-600/10 border border-red-500/30 text-vtc-red text-xs md:text-sm font-semibold uppercase tracking-widest">
+                Zaawansowane Centrum Logistyczne
+            </span>
+            <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                Giełda <span class="text-vtc-red">Zleceń Transportowych</span>
+            </h1>
+            <p class="text-gray-400 max-w-2xl mx-auto">
+                Pełna specyfikacja firm załadunku i rozładunku. Przyjmuj trasy, archiwizuj ukończone kursy i bądź w kontakcie z wirtualnym dyspozytorem!
+            </p>
+            
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <div class="inline-flex items-center space-x-3 bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl text-sm">
+                    <i class="fa-regular fa-clock text-vtc-red"></i>
+                    <span class="text-gray-300">Rotacja giełdy za:</span>
+                    <span id="refresh-timer" class="font-mono font-bold text-white text-base">15:00</span>
+                </div>
+                <!-- Przycisk Syntezatora Mowy -->
+                <button id="tts-toggle-btn" onclick="toggleTTS()" class="inline-flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-2xl text-sm transition-all text-white">
+                    <i id="tts-icon" class="fa-solid fa-volume-xmark text-gray-400"></i>
+                    <span id="tts-text">Głos dyspozytora: Wył</span>
+                </button>
+                <button onclick="scrollToArchive()" class="px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm transition-all border border-white/10">
+                    <i class="fa-solid fa-box-archive mr-2 text-vtc-red"></i> Moje Archiwum Tras (<span id="archive-count">0</span>)
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters & DLC Settings -->
+    <section class="pb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-vtc-card border border-white/10 rounded-3xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders text-vtc-red"></i>
+                        <span>Filtry Mapy i Posiadane DLC</span>
+                    </h3>
+                    <span class="text-xs text-gray-400">Dopasuj oferty do swojej wersji gry</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-2">
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span>Skandynawia</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span>Going East!</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span>Viva la France</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span>Italia</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span>Bałtyk</span>
+                    </label>
+                    <label class="flex items-center space-x-2 bg-black/40 border border-white/10 p-3 rounded-xl cursor-pointer hover:border-vtc-red/50 text-sm border-vtc-red/40 bg-red-600/5">
+                        <input type="checkbox" checked class="accent-red-600 rounded"> <span class="font-bold text-vtc-red">ProMods</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Exchange Market (Contracts) -->
+    <section class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <span class="text-vtc-red font-bold text-sm tracking-widest uppercase">Aktywne Kontrakty VTC</span>
+                    <h2 class="text-3xl font-black text-white">Giełda Zleceń ETS2</h2>
+                </div>
+                <button onclick="forceRefreshContracts()" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-semibold transition-all border border-white/10 flex items-center space-x-2">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Wymuś Nowe Zlecenia</span>
+                </button>
+            </div>
+
+            <!-- Grid of Contracts -->
+            <div id="contracts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Generator & Custom Route Section -->
+    <section class="py-16 bg-vtc-card/30 border-t border-white/5 mt-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center space-y-3 mb-10">
+                <span class="text-vtc-red font-bold text-sm tracking-widest uppercase">Generator Wolny</span>
+                <h2 class="text-3xl font-extrabold text-white">Stwórz Własne Zlecenie i Dodaj do Archiwum</h2>
+                <p class="text-gray-400 text-sm">Ustaw dokładne firmy załadunku i rozładunku dla swojego konwoju na TruckersMP.</p>
+            </div>
+
+            <div class="bg-vtc-card border border-white/10 rounded-3xl p-8 space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-gray-400 mb-2">Miasto i Firma Załadunku (Skąd)</label>
+                        <input type="text" id="gen-from" placeholder="np. Warszawa - Sanbuilders" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-vtc-red">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-gray-400 mb-2">Miasto i Firma Rozładunku (Dokąd)</label>
+                        <input type="text" id="gen-to" placeholder="np. Berlin - Tradeaux" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-vtc-red">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-gray-400 mb-2">Przewożony Ładunek</label>
+                        <input type="text" id="gen-cargo" placeholder="np. Prefabrykaty betonowe" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-vtc-red">
+                    </div>
+                    <div>
+                        <label class="block text-xs uppercase font-bold text-gray-400 mb-2">Szacowany Dystans</label>
+                        <input type="text" id="gen-km" placeholder="np. 574 km" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-vtc-red">
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button onclick="randomizeGenerator()" class="flex-1 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all border border-white/10 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-dice text-vtc-red"></i>
+                        <span>Losuj Dane</span>
+                    </button>
+                    <button onclick="acceptCustomRoute()" class="flex-1 py-3.5 rounded-xl bg-vtc-red hover:bg-vtc-redHover text-white font-bold transition-all shadow-lg shadow-red-600/30 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-box-archive"></i>
+                        <span>Przyjmij i Zapisz do Archiwum</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Archive of Taken Routes Section -->
+    <section id="archive-section" class="py-16 bg-vtc-dark border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-vtc-red font-bold text-sm tracking-widest uppercase">Historia Kierowcy</span>
+                    <h2 class="text-3xl font-black text-white">Archiwum Wziętych Tras</h2>
+                </div>
+                <button onclick="clearArchive()" class="px-4 py-2 rounded-xl bg-red-600/10 hover:bg-red-600/20 text-red-500 text-xs font-bold transition-all border border-red-500/20">
+                    Wyczyść Archiwum
+                </button>
+            </div>
+
+            <div id="archive-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically injected -->
+            </div>
+        </div>
+    </section>
+
+    <!-- VTC Virtual Dispatcher Phone Widget (Bottom Right) -->
+    <div class="fixed bottom-6 right-6 z-40 max-w-sm w-full pointer-events-none">
+        <div id="dispatcher-phone" class="pointer-events-auto bg-vtc-card border border-vtc-red/40 rounded-3xl p-5 shadow-2xl shadow-black/80 space-y-3 relative hidden phone-notification">
+            <button onclick="closePhoneWidget()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="flex items-center space-x-3 border-b border-white/10 pb-3">
+                <div class="w-10 h-10 rounded-2xl bg-vtc-red text-white flex items-center justify-center text-lg shadow-md shadow-red-600/30">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Dyspozytor VTC</h4>
+                    <span class="text-[10px] text-green-400 font-semibold flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 inline-block"></span> Komunikat na żywo</span>
+                </div>
+            </div>
+            <div class="space-y-1">
+                <span id="phone-category" class="text-[10px] uppercase font-bold text-vtc-red tracking-wider">Zdarzenie Drogowe</span>
+                <p id="phone-message" class="text-xs text-gray-200 leading-relaxed">
+                    Uwaga kierowcy! Na trasie A2 w pobliżu Berlina doszło do kolizji. Tworzy się 3-kilometrów korek, zalecamy objazd przez zjazd lokalny.
+                </p>
+            </div>
+            <div class="pt-1 text-right">
+                <span class="text-[9px] text-gray-500 font-mono" id="phone-time">Przed chwilą</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-vtc-card border border-white/10 rounded-3xl max-w-2xl w-full p-8 space-y-6 relative shadow-2xl">
+            <button onclick="closeAdminModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div id="password-screen" class="space-y-4">
+                <h3 class="text-xl font-bold text-white">Panel Administratora Giełdy</h3>
+                <p class="text-sm text-gray-400">Podaj hasło administratora (polska2026), aby zarządzać zleceniami.</p>
+                <input type="password" id="admin-password" placeholder="Wpisz hasło..." class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-vtc-red">
+                <button onclick="checkPassword()" class="w-full py-3 rounded-xl bg-vtc-red hover:bg-vtc-redHover text-white font-bold transition-all">Zaloguj</button>
+                <p id="error-msg" class="text-red-500 text-xs hidden">Nieprawidłowe hasło!</p>
+            </div>
+
+            <div id="edit-screen" class="space-y-6 hidden max-h-[80vh] overflow-y-auto pr-2">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <h3 class="text-xl font-bold text-white">Edycja Zleceń na Giełdzie</h3>
+                    <button onclick="addNewContractForm()" class="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-semibold">
+                        <i class="fa-solid fa-plus mr-1"></i> Dodaj Zlecenie
+                    </button>
+                </div>
+                <div id="admin-contracts-list" class="space-y-4"></div>
+                <button onclick="saveAdminContracts()" class="w-full py-3 rounded-xl bg-vtc-red hover:bg-vtc-redHover text-white font-bold transition-all shadow-lg shadow-red-600/30 sticky bottom-0">Zapisz Zmiany</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-vtc-dark border-t border-white/10 py-12 text-gray-400 text-sm mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center space-x-3">
+                <img src="https://i.postimg.cc/cLG96180/LOGOS.png" alt="Logo Stopka" class="h-8 w-auto object-contain">
+                <span class="font-bold text-white tracking-wider">POLSKA <span class="text-vtc-red">LOGISTYKA</span></span>
+            </div>
+            <div>
+                <p>&copy; 2026 Polska Logistyka VTC. Wszelka wirtualna własność zastrzeżona.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        const ADMIN_PASSWORD = "polska2026";
+        let ttsEnabled = false; // Syntezator domyślnie wyłączony
+
+        // Baza zleceń z firmami załadunku i rozładunku
+        const samplePool = [
+            { fromCity: "Warszawa", fromComp: "Sanbuilders", toCity: "Berlin", toComp: "Tradeaux", cargo: "Prefabrykaty betonowe", km: "574 km", reward: "€32 400" },
+            { fromCity: "Kraków", fromComp: "Polaris Lines", toCity: "Wiedeń", toComp: "ACME", cargo: "Stal hutnicza", km: "620 km", reward: "€38 900" },
+            { fromCity: "Gdańsk", fromComp: "NS Chemicals", toCity: "Kopenhaga", toComp: "Global Mills", cargo: "Nafta i chemia", km: "850 km", reward: "€49 200" },
+            { fromCity: "Katowice", fromComp: "Stokes", toCity: "Praga", toComp: "Rosa Luxemburg", cargo: "Części górnicze", km: "380 km", reward: "€24 500" },
+            { fromCity: "Paryż", fromComp: "VPC Rail", toCity: "Madryt", toComp: "Trami", cargo: "Szyny kolejowe", km: "1 270 km", reward: "€78 600" },
+            { fromCity: "Rzym", fromComp: "Agro Nord", toCity: "Genewa", toComp: "Nordic Crown", cargo: "Świeże owoce", km: "910 km", reward: "€54 100" },
+            { fromCity: "Wrocław", fromComp: "Lisboan", toCity: "Budapeszt", toComp: "Kaarfor", cargo: "Artykuły spożywcze", km: "690 km", reward: "€41 000" },
+            { fromCity: "Helsinki (ProMods)", fromComp: "Konstabo", toCity: "Sztokholm", toComp: "Polaris Lines", cargo: "Maszyny papiernicze", km: "740 km", reward: "€46 500" }
+        ];
+
+        // Komunikaty dyspozytora VTC
+        const dispatcherMessages = [
+            { category: "Zdarzenie Drogowe", text: "Uwaga na autostradzie A4 koło Wrocławia! Robotnicy drogowi blokują pas awaryjny. Zachowajcie ostrożność." },
+            { category: "Nowy Kontrakt Giełdowy", text: "Centrala dodała nowe wysokopłatne zlecenie ekspresowe na trasie Gdańsk do Kopenhaga. Sprawdź giełdę!" },
+            { category: "Wiadomość VTC", text: "Prezes zarządu przypomina o trwającym miesiącu konwojowym. Nasza firma zajmuje wysokie miejsce w Polsce!" },
+            { category: "Zdarzenie Drogowe", text: "Węzeł autostradowy w Lipsku jest zatłoczony. Zalecamy korzystanie z nawigacji i zjazdów alternatywnych." },
+            { category: "Wiadomość VTC", text: "Gratulacje dla kierowców za ukończenie wczorajszego konwoju międzymiastowego. Oby tak dalej!" }
+        ];
+
+        function getStoredContracts() {
+            return JSON.parse(localStorage.getItem('vtc_exchange_contracts')) || samplePool.slice(0, 6);
+        }
+        function saveStoredContracts(data) {
+            localStorage.setItem('vtc_exchange_contracts', JSON.stringify(data));
+        }
+
+        function getArchive() {
+            return JSON.parse(localStorage.getItem('vtc_archive_routes')) || [];
+        }
+        function saveArchive(data) {
+            localStorage.setItem('vtc_archive_routes', JSON.stringify(data));
+        }
+
+        // Przełączanie syntezatora mowy (TTS)
+        function toggleTTS() {
+            ttsEnabled = !ttsEnabled;
+            const btnText = document.getElementById('tts-text');
+            const btnIcon = document.getElementById('tts-icon');
+            const btn = document.getElementById('tts-toggle-btn');
+
+            if (ttsEnabled) {
+                btnText.innerText = "Głos dyspozytora: Wł";
+                btnIcon.className = "fa-solid fa-volume-high text-vtc-red";
+                btn.classList.add("border-vtc-red/50", "bg-red-600/10");
+                speakText("Syntezator mowy dyspozytora został włączony.");
+            } else {
+                btnText.innerText = "Głos dyspozytora: Wył";
+                btnIcon.className = "fa-solid fa-volume-xmark text-gray-400";
+                btn.classList.remove("border-vtc-red/50", "bg-red-600/10");
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        // Funkcja czytająca tekst syntezatorem mowy
+        function speakText(text) {
+            if (!ttsEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel(); // Zatrzymaj poprzednie wypowiedzi
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pl-PL';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Funkcja odtwarzająca dźwięk powiadomienia (pikanie przez Web Audio API)
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Wysokość tonu (A5)
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15); // Długość piknięcia (150ms)
+
+                // Drugi wyższy ton dla przyjemniejszego efektu dwutonowego powiadomienia
+                setTimeout(() => {
+                    const osc2 = audioCtx.createOscillator();
+                    const gainNode2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1320, audioCtx.currentTime);
+                    gainNode2.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    osc2.connect(gainNode2);
+                    gainNode2.connect(audioCtx.destination);
+                    osc2.start();
+                    osc2.stop(audioCtx.currentTime + 0.2);
+                }, 150);
+            } catch (e) {
+                console.log("AudioContext nieobsługiwany lub zablokowany przez przeglądarkę.");
+            }
+        }
+
+        // Renderowanie giełdy
+        function renderContracts() {
+            const contracts = getStoredContracts();
+            const grid = document.getElementById('contracts-grid');
+            grid.innerHTML = '';
+
+            contracts.forEach((c, idx) => {
+                grid.innerHTML += `
+                    <div class="bg-vtc-card border border-white/10 rounded-3xl p-6 space-y-4 hover:border-vtc-red/40 transition-all flex flex-col justify-between">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs px-2.5 py-1 rounded-full bg-red-600/10 text-vtc-red font-semibold">Kontrakt #${idx + 1}</span>
+                                <span class="text-sm font-mono text-gray-400"><i class="fa-solid fa-route mr-1 text-vtc-red"></i> ${c.km}</span>
+                            </div>
+                            <div class="space-y-2 bg-black/30 p-3 rounded-2xl">
+                                <div class="text-xs text-gray-400 uppercase font-semibold">Załadunek (Skąd)</div>
+                                <div class="text-sm font-bold text-white flex items-center justify-between">
+                                    <span><i class="fa-solid fa-warehouse text-vtc-red mr-1.5"></i> ${c.fromCity}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded bg-white/5 text-gray-300">${c.fromComp}</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2 bg-black/30 p-3 rounded-2xl">
+                                <div class="text-xs text-gray-400 uppercase font-semibold">Rozładunek (Dokąd)</div>
+                                <div class="text-sm font-bold text-white flex items-center justify-between">
+                                    <span><i class="fa-solid fa-industry text-vtc-red mr-1.5"></i> ${c.toCity}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded bg-white/5 text-gray-300">${c.toComp}</span>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-300 bg-white/5 px-3 py-2 rounded-xl flex items-center justify-between">
+                                <span>Ładunek: <strong class="text-white">${c.cargo}</strong></span>
+                            </div>
+                        </div>
+                        <div class="pt-2 flex items-center justify-between">
+                            <span class="text-vtc-red font-black text-lg">${c.reward}</span>
+                            <button onclick="acceptContractToArchive('${c.fromCity} (${c.fromComp})', '${c.toCity} (${c.toComp})', '${c.cargo}', '${c.km}')" class="px-4 py-2 rounded-xl bg-vtc-red hover:bg-vtc-redHover text-white text-xs font-bold transition-all shadow-md shadow-red-600/20">
+                                Przyjmij zlecenie
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Archiwum obsługa
+        function acceptContractToArchive(from, to, cargo, km) {
+            let archive = getArchive();
+            archive.unshift({
+                from: from,
+                to: to,
+                cargo: cargo,
+                km: km,
+                date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                status: "W trakcie realizacji"
+            });
+            saveArchive(archive);
+            renderArchive();
+            alert("Zlecenie zostało przyjęte i dodane do Twojego Archiwum Tras!");
+            scrollToArchive();
+        }
+
+        function renderArchive() {
+            const archive = getArchive();
+            const container = document.getElementById('archive-list');
+            document.getElementById('archive-count').innerText = archive.length;
+            container.innerHTML = '';
+
+            if (archive.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 italic">Brak zapisanych tras w archiwum. Przyjmij zlecenie z giełdy lub wygeneruj własne!</div>`;
+                return;
+            }
+
+            archive.forEach((item, index) => {
+                container.innerHTML += `
+                    <div class="bg-vtc-card border border-white/10 rounded-3xl p-6 space-y-4">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                            <span class="text-xs text-gray-400 font-mono">${item.date}</span>
+                            <button onclick="removeArchiveItem(${index})" class="text-red-500 hover:text-red-400 text-xs">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="text-xs text-gray-400 uppercase font-semibold">Trasa</div>
+                            <div class="text-sm font-bold text-white">${item.from} ➔ ${item.to}</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-black/30 p-2 rounded-xl text-gray-300">Ładunek: <strong class="text-white">${item.cargo}</strong></div>
+                            <div class="bg-black/30 p-2 rounded-xl text-gray-300">Dystans: <strong class="text-white">${item.km}</strong></div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-xs px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 font-semibold">${item.status}</span>
+                            <button onclick="completeRoute(${index})" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold">
+                                <i class="fa-solid fa-check mr-1"></i> Ukończone
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function completeRoute(index) {
+            let archive = getArchive();
+            archive[index].status = "Ukończone pomyślnie";
+            saveArchive(archive);
+            renderArchive();
+        }
+
+        function removeArchiveItem(index) {
+            let archive = getArchive();
+            archive.splice(index, 1);
+            saveArchive(archive);
+            renderArchive();
+        }
+
+        function clearArchive() {
+            if(confirm("Czy na pewno chcesz wyczyścić całe swoje archiwum?")) {
+                saveArchive([]);
+                renderArchive();
+            }
+        }
+
+        function scrollToArchive() {
+            document.getElementById('archive-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Generator własnych tras
+        function randomizeGenerator() {
+            const random = samplePool[Math.floor(Math.random() * samplePool.length)];
+            document.getElementById('gen-from').value = `${random.fromCity} - ${random.fromComp}`;
+            document.getElementById('gen-to').value = `${random.toCity} - ${random.toComp}`;
+            document.getElementById('gen-cargo').value = random.cargo;
+            document.getElementById('gen-km').value = random.km;
+        }
+
+        function acceptCustomRoute() {
+            const from = document.getElementById('gen-from').value || "Warszawa - Sanbuilders";
+            const to = document.getElementById('gen-to').value || "Berlin - Tradeaux";
+            const cargo = document.getElementById('gen-cargo').value || "Towar ogólny";
+            const km = document.getElementById('gen-km').value || "500 km";
+
+            acceptContractToArchive(from, to, cargo, km);
+        }
+
+        // Timer 15 minut
+        let timeLeft = 900;
+        function startTimer() {
+            const timerDisplay = document.getElementById('refresh-timer');
+            setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                timeLeft--;
+                if (timeLeft < 0) {
+                    timeLeft = 900;
+                    let shuffled = [...samplePool].sort(() => 0.5 - Math.random());
+                    saveStoredContracts(shuffled.slice(0, 6));
+                    renderContracts();
+                }
+            }, 1000);
+        }
+
+        function forceRefreshContracts() {
+            timeLeft = 900;
+            let shuffled = [...samplePool].sort(() => 0.5 - Math.random());
+            saveStoredContracts(shuffled.slice(0, 6));
+            renderContracts();
+            alert("Giełda została odświeżona!");
+        }
+
+        // Wirtualny Dyspozytor (Losowe powiadomienia w telefonie co 3-15 minut)
+        function startVirtualDispatcher() {
+            // Pierwsze powiadomienie po 10 sekundach, kolejne losowo od 3 do 15 minut (180000ms do 900000ms)
+            setTimeout(() => {
+                triggerDispatcherNotification();
+                setInterval(triggerDispatcherNotification, Math.floor(Math.random() * (900000 - 180000 + 1)) + 180000);
+            }, 10000);
+        }
+
+        function triggerDispatcherNotification() {
+            const msg = dispatcherMessages[Math.floor(Math.random() * dispatcherMessages.length)];
+            document.getElementById('phone-category').innerText = msg.category;
+            document.getElementById('phone-message').innerText = msg.text;
+            document.getElementById('phone-time').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const phone = document.getElementById('dispatcher-phone');
+            phone.classList.remove('hidden');
+
+            // 1. Zagraj dźwięk powiadomienia (pikanie)
+            playBeepSound();
+
+            // 2. Przeczytaj treść syntezatorem mowy (jeśli włączony)
+            if (ttsEnabled) {
+                const speechString = `Nowa wiadomość od dyspozytora. Kategoria: ${msg.category}. Treść: ${msg.text}`;
+                speakText(speechString);
+            }
+        }
+
+        function closePhoneWidget() {
+            document.getElementById('dispatcher-phone').classList.add('hidden');
+        }
+
+        // Panel Admina
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            document.getElementById('password-screen').classList.remove('hidden');
+            document.getElementById('edit-screen').classList.add('hidden');
+            document.getElementById('admin-password').value = '';
+            document.getElementById('error-msg').classList.add('hidden');
+        }
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+        function checkPassword() {
+            if (document.getElementById('admin-password').value === ADMIN_PASSWORD) {
+                document.getElementById('password-screen').classList.add('hidden');
+                document.getElementById('edit-screen').classList.remove('hidden');
+                populateAdminList();
+            } else {
+                document.getElementById('error-msg').classList.remove('hidden');
+            }
+        }
+        function populateAdminList() {
+            const contracts = getStoredContracts();
+            const container = document.getElementById('admin-contracts-list');
+            container.innerHTML = '';
+            contracts.forEach((c, idx) => {
+                container.innerHTML += `
+                    <div class="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-3 admin-contract-row">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-vtc-red uppercase">Zlecenie #${idx + 1}</span>
+                            <button onclick="removeAdminRow(${idx})" class="text-red-500 text-xs px-2 py-1 bg-red-500/10 rounded">Usuń</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" class="inp-fromCity bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.fromCity}" placeholder="Miasto Start">
+                            <input type="text" class="inp-fromComp bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.fromComp}" placeholder="Firma Start">
+                            <input type="text" class="inp-toCity bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.toCity}" placeholder="Miasto Cel">
+                            <input type="text" class="inp-toComp bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.toComp}" placeholder="Firma Cel">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" class="inp-cargo bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.cargo}" placeholder="Ładunek">
+                            <input type="text" class="inp-km bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.km}" placeholder="KM">
+                            <input type="text" class="inp-reward bg-black/50 border border-white/10 rounded p-1.5 text-white text-xs" value="${c.reward}" placeholder="Stawka">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        function addNewContractForm() {
+            let contracts = getStoredContracts();
+            contracts.push({ fromCity: "Warszawa", fromComp: "Sanbuilders", toCity: "Berlin", toComp: "Tradeaux", cargo: "Towar", km: "500 km", reward: "€30 000" });
+            saveStoredContracts(contracts);
+            populateAdminList();
+            renderContracts();
+        }
+        function removeAdminRow(idx) {
+            let contracts = getStoredContracts();
+            contracts.splice(idx, 1);
+            saveStoredContracts(contracts);
+            populateAdminList();
+            renderContracts();
+        }
+        function saveAdminContracts() {
+            const rows = document.querySelectorAll('.admin-contract-row');
+            let updated = [];
+            rows.forEach(r => {
+                updated.push({
+                    fromCity: r.querySelector('.inp-fromCity').value,
+                    fromComp: r.querySelector('.inp-fromComp').value,
+                    toCity: r.querySelector('.inp-toCity').value,
+                    toComp: r.querySelector('.inp-toComp').value,
+                    cargo: r.querySelector('.inp-cargo').value,
+                    km: r.querySelector('.inp-km').value,
+                    reward: r.querySelector('.inp-reward').value
+                });
+            });
+            saveStoredContracts(updated);
+            renderContracts();
+            closeAdminModal();
+            alert("Zaktualizowano giełdę!");
+        }
+
+        window.onload = () => {
+            renderContracts();
+            renderArchive();
+            startTimer();
+            startVirtualDispatcher();
+        };
+    </script>
+</body>
+</html>
